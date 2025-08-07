@@ -2,7 +2,7 @@ from transformers import pipeline
 import yfinance as yf
 from langchain_core.runnables import RunnableLambda
 
-sentiment_model = pipeline("sentiment-analysis", model="cardiffnlp/twitter-roberta-base-sentiment")
+sentiment_model = pipeline("sentiment-analysis", model="ProsusAI/finbert")
 
 def get_news_headlines(ticker):
     company = yf.Ticker(ticker)
