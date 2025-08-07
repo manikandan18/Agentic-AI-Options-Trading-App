@@ -4,9 +4,9 @@ from langchain_core.runnables import RunnableLambda
 from typing import List, Dict, Optional, Literal, TypedDict, Any
 
 from agents.ticker_agent import ticker_agent
-from agents.sentiment_agent import sentiment_agent
+from agents.sentiment_agent_optimized import sentiment_agent
 from agents.options_agent import options_agent
-from agents.ml_predictor_agent import ml_predictor_agent
+from agents.ml_predictor_agent_optimized import ml_predictor_agent
 
 # Define shared state schema
 class GraphState(TypedDict, total=False):
