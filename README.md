@@ -16,14 +16,15 @@ This is LangGrpah based Agentic AI Options Trading App. This Agentic AI applicat
 The Project source code folder Structure:-
 
 Agentic-AI-Options-Trading-App/
-├── graph_definition.py - LangGraph state and agent calls
+├── graph_definition.py              # LangGraph state setup and agent flow orchestration
 ├── agents/
-│   ├── __init__.py
-│   ├── ticker_agent.py - To fetch mega cap stocks.
-│   ├── sentiment_agent_optimized.py - Do sentiment analysis using FinBert model
-│   ├── options_agent.py - Fetch options from Yahoo finance
-│   └── ml_predictor_agent_optimized.py - Core LSTM model that does stock forecasting
-|___ai_trading_webapp.py - Streamlit App to fetch user input or place automated/manual trades
+│   ├── __init__.py                  # Agent package initializer
+│   ├── ticker_agent.py             # Fetches mega cap stocks using market screeners
+│   ├── sentiment_agent_optimized.py# Performs sentiment analysis using FinBERT
+│   ├── options_agent.py            # Retrieves options chain from Yahoo Finance
+│   └── ml_predictor_agent_optimized.py  # LSTM-based stock forecasting model
+├── ai_trading_webapp.py            # Streamlit app interface for manual/automated trading
+
 
 The Generated files folder Structure after executing ai_trading_webapp.py:-
 
