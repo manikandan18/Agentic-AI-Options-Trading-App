@@ -15,7 +15,7 @@ This is LangGrpah based Agentic AI Options Trading App. This Agentic AI applicat
 
 The Project source code folder Structure:-
 
-<pre> <code> ```
+<pre> <code>
 Agentic-AI-Options-Trading-App/
 ├── graph_definition.py              # LangGraph state setup and agent flow orchestration
 ├── agents/
@@ -25,13 +25,13 @@ Agentic-AI-Options-Trading-App/
 │   ├── options_agent.py            # Retrieves options chain from Yahoo Finance
 │   └── ml_predictor_agent_optimized.py  # LSTM-based stock forecasting model
 ├── ai_trading_webapp.py            # Streamlit app interface for manual/automated trading
-``` </code> </pre>
+</code> </pre>
 
 The Generated files folder Structure after executing ai_trading_webapp.py:-
 
 The LSTM model would generate the below models and save it so that it doesn't get trained every time the call is made from webapp. This will improve the performance drastically.
 
-<pre> <code> ```
+<pre> <code>
 Agentic-AI-Options-Trading-App/
 ├── models/
 │   ├── AMZN_model.pt
@@ -39,9 +39,11 @@ Agentic-AI-Options-Trading-App/
 |   ├── ...
 ├── loss_plots/
 │   ├── loss_plots.png
-``` </code> </pre>
+</code> </pre>
 
 To run the application from the terminal:-
+<pre> <code>
 git clone https://github.com/manikandan18/Agentic-AI-Options-Trading-App
 cd Agentic-AI-Options-Trading-App
 streamlit run ai_trading_webapp.py
+</code> </pre> 
