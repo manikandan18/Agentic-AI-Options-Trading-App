@@ -1,0 +1,1 @@
+# Dummy init for the application start

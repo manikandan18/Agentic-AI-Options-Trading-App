@@ -1,3 +1,17 @@
+'''
+This agent does the following.
+
+1. Checks the state for positive sentiment mega cap tickers and 
+2. It tries to find the option with highest open interest and expiry date >= 90 days for each ticker.
+3. It updates the graph state with 'expiries' and 'top_strikes' for each ticker.
+
+The output graph state is of format,
+
+'expiries': {'ABBV': '2025-11-21', 'ABT': '2025-11-21'},
+
+'top_strikes': {'ABBV': [{'strike': 250.0, 'openInterest': 806, 'contractSymbol': 'ABBV251121C00250000'}], 'ABT': [{'strike': 180.0, 'openInterest': 118, 'contractSymbol': 'ABT251121C00180000'}]
+'''
+
 # options_agent.py
 
 import datetime
@@ -42,9 +56,11 @@ def options_agent(state: Dict[str, Any]) -> Dict[str, Any]:
 
                 if calls_df.empty:
                     continue
-
+                    
+                # Get the top open interest option on that particular expiry date
                 top_row = calls_df.sort_values(by="openInterest", ascending=False).iloc[0]
 
+                # Get the top open interest option out of all expiry dates for that particular ticker
                 if top_row["openInterest"] > max_oi:
                     max_oi = top_row["openInterest"]
                     best_call = {
@@ -60,7 +76,8 @@ def options_agent(state: Dict[str, Any]) -> Dict[str, Any]:
 
         expiries[ticker] = best_expiry
         top_strikes[ticker] = [best_call] if best_call else []
-
+    
+    # update the graph state with options data
     return {
         "expiries": expiries,
         "top_strikes": top_strikes

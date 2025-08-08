@@ -1,25 +1,12 @@
-'''
-The LangGraph Orchestrator that defines states, creates nodes (agents) and their edges (interdependencies and sequencing). It calls ticker_agent, sentiment_agent, options agent and ml_predictor_agent. This is the starting trigger point for all agents.
-
-The final state for one ticker after calling all agents is like below.
-
-{'tickers': ['AAPL'], 
- 'sentiment': {'AAPL': 'positive'}, 
- 'expiries': {'AAPL': '2026-12-18'}, 
- 'top_strikes': {'AAPL': [{'strike': 70.0, 'openInterest': 2526, 'contractSymbol': 'AAPL261218C00070000'}]}, 
- 'predicted_prices': {'AAPL': 206.58}, 
- 'best_strike_prices': {'AAPL': {'strike': 70.0, 'openInterest': 2526, 'contractSymbol': 'AAPL261218C00070000'}} 
-'''
-
 # graph_definition.py
 from langgraph.graph import StateGraph, END
 from langchain_core.runnables import RunnableLambda
 from typing import List, Dict, Optional, Literal, TypedDict, Any
 
 from agents.ticker_agent import ticker_agent
-from agents.sentiment_agent_optimized import sentiment_agent
+from agents.sentiment_agent import sentiment_agent
 from agents.options_agent import options_agent
-from agents.ml_predictor_agent_optimized import ml_predictor_agent
+from agents.ml_predictor_agent import ml_predictor_agent
 
 # Define shared state schema
 class GraphState(TypedDict, total=False):
@@ -46,6 +33,4 @@ def create_options_graph():
     builder.add_edge("SentimentAgent", "OptionsAgent")
     builder.add_edge("OptionsAgent", "MLPredictorAgent")
     builder.add_edge("MLPredictorAgent", END)
-
-    # Call all agents as per the nodes and edges in graph configured above
     return builder.compile()

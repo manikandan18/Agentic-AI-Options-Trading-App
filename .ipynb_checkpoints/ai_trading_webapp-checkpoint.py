@@ -1,8 +1,4 @@
-'''
-   This is the top level Agentic AI Streamlit web application that triggers the trade recommendations. It calls the starting method in the graph definition and fetches the result once all agents modifies the state. For options of each ticker that are +-15% from the predicted price of the model, this places trade orders automatically. In the same web page, it shows the tickers that are not closest to place manual orders too.
 
-If no ticker specified, it uses ticker_agent, to get options and predicted prices for all tickers. Else, it uses comma separated tickers specified in the Tickers text box.
-'''
 
 import streamlit as st
 import pandas as pd

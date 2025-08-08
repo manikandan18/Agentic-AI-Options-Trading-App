@@ -1,3 +1,8 @@
+'''
+This agent is used to pass the mega cap stock tickers obtained from finnbiz. The mega cap stocks are the ones 
+with market cap more than $200B. These are updated in the graph state
+'''
+
 from langchain_core.runnables import RunnableLambda
 
 def ticker_agent_fn(state):

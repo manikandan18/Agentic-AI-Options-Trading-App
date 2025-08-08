@@ -1,3 +1,20 @@
+'''
+This agent does the following.
+
+1. Fetch the past 2 years performance of all mega cap stocks from yahoo finance. It uses Close price, RSI, MACD and Bollinger bands.
+2. Splits up the data set into 80-20 for training and validation. Creates LSTM (Long Short Term Memory) model that uses 2 hidden layers, 1 dense output layer with adam optimizer. The learning rate at 0.001.
+3. Trains and validates the model.
+4. Plots the loss curve for all tickers.
+5. Saves the model so that it does not have to train again and again for the same tickers. This improves the Agentic AI performance drastically. It just have to do forecasting in further calls.
+6. Uses the model to forecast the stock prices of the top option tickers we obtained from options_agent on that expiry date.
+7. It identifies the best strike price option that is closest to predicted stock price from the model.
+8. It updates this best_strike_prices in the graph state and returns it.
+
+The state output is of format,
+
+'best_strike_prices': {'AAPL': {'strike': 70.0, 'openInterest': 2526, 'contractSymbol': 'AAPL261218C00070000'}, 'ABBV': {'strike': 250.0, 'openInterest': 806, 'contractSymbol': 'ABBV251121C00250000'}, 'ABT': {'strike': 180.0, 'openInterest': 118, 'contractSymbol': 'ABT251121C00180000'}, 'AVGO': {'strike': 80.0, 'openInterest': 5369, 'contractSymbol': 'AVGO251219C00080000'}}
+'''
+
 import pandas as pd
 import yfinance as yf
 import torch
@@ -9,6 +26,7 @@ import datetime
 import os
 import joblib
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 MODEL_DIR = "models"
 LOSS_PLOTS_DIR = "loss_plots"
@@ -84,11 +102,11 @@ def print_model_summary():
     print("\nModel Summary (Shared Across All Tickers)")
     print("=" * 50)
     print(f"{'Model':<20}: LSTM")
-    print(f"{'Hidden Layers':<20}: 2 × LSTM(64 units)")
+    print(f"{'Hidden Layers':<20}: 3 × LSTM(128 units) + Dropout(0.3)")
     print(f"{'Output Layer':<20}: Dense(1)")
     print(f"{'Optimizer':<20}: Adam")
     print(f"{'Loss Function':<20}: Mean Squared Error")
-    print(f"{'Epochs':<20}: 10")
+    print(f"{'Epochs':<20}: 100")
     print("=" * 50 + "\n")
 
 # ----- Core Agent Logic -----
@@ -125,45 +143,66 @@ def _ml_predictor_agent(state):
             seq_length = 30
             input_size = features.shape[1]
 
+            # Check for model presence per ticker. If present, avoid re-training for performance optimization
             if not os.path.exists(model_path) or not os.path.exists(scaler_path):
+                # Scale the data using MinMaxScaler
                 scaler = MinMaxScaler()
                 data_scaled = scaler.fit_transform(features)
                 X, y = [], []
                 for i in range(len(data_scaled) - seq_length):
                     X.append(data_scaled[i:i+seq_length])
                     y.append(data_scaled[i+seq_length][0])
-                X_tensor = torch.tensor(X, dtype=torch.float32)
-                y_tensor = torch.tensor(y, dtype=torch.float32).view(-1, 1)
 
+                # Train-validation split (80-20)
+                X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, shuffle=False)
+
+                X_train = torch.tensor(X_train, dtype=torch.float32)
+                y_train = torch.tensor(y_train, dtype=torch.float32).view(-1, 1)
+                X_val = torch.tensor(X_val, dtype=torch.float32)
+                y_val = torch.tensor(y_val, dtype=torch.float32).view(-1, 1)
+                
                 model = LSTMModel(input_size=input_size)
                 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
                 loss_fn = nn.MSELoss()
 
                 ticker_losses = []
+                
                 for epoch in range(10):
                     model.train()
                     optimizer.zero_grad()
-                    output = model(X_tensor)
-                    loss = loss_fn(output, y_tensor)
-                    ticker_losses.append(loss.item())
+                    output = model(X_train)
+                    loss = loss_fn(output, y_train)
                     loss.backward()
                     optimizer.step()
 
+                    # Validation
+                    model.eval()
+                    with torch.no_grad():
+                        val_output = model(X_val)
+                        val_loss = loss_fn(val_output, y_val).item()
+                    ticker_losses.append(val_loss)
+
+                # Save the model for future use and avoid re-training for each call from Web app
                 torch.save(model.state_dict(), model_path)
                 joblib.dump(scaler, scaler_path)
                 loss_history[ticker] = ticker_losses
             else:
+                # Store the scaled data appropriate for each ticker
                 scaler = joblib.load(scaler_path)
                 data_scaled = scaler.transform(features)
-                model = LSTMModel(input_size=input_size)
+                model = OptimizedLSTMModel(input_size=input_size)
                 model.load_state_dict(torch.load(model_path))
                 model.eval()
 
             recent_seq = data_scaled[-seq_length:]
+
+            # Predict the price of expiry date in future
             predicted_price = predict_price_n_days(model, scaler, recent_seq.copy(), input_size, days_ahead)
 
             strikes = top_strikes_all.get(ticker, [])
             if strikes:
+                # Get the option with closest strike price to LSTM predicted price
                 best_strike = min(strikes, key=lambda s: abs(s["strike"] - predicted_price))
             else:
                 best_strike = None
@@ -179,17 +218,16 @@ def _ml_predictor_agent(state):
     if loss_history:
         plot_loss_per_ticker(loss_history)
 
-    # Split results into two separate dictionaries
     predicted_prices = {
-       ticker: data["predicted_price_on_expiry"]
-       for ticker, data in results.items()
-       if "predicted_price_on_expiry" in data
+        ticker: data["predicted_price_on_expiry"]
+        for ticker, data in results.items()
+        if "predicted_price_on_expiry" in data
     }
 
     best_strike_prices = {
-       ticker: data["best_matching_option"]
-       for ticker, data in results.items()
-       if "best_matching_option" in data
+        ticker: data["best_matching_option"]
+        for ticker, data in results.items()
+        if "best_matching_option" in data
     }
 
     return {

@@ -1,3 +1,9 @@
+'''
+This agent analyzes the sentiment and updates graph state with sentiment for each ticker. It gets the top 10 headlines
+of the mega cap stock tickers and does the sentiment analysis. Used the pre-trained model cardiffnlp/twitter-roberta-base-sentiment
+to analyze the sentiment. The state output is of format {'sentiment': {'ABT': 'positive', 'AMD': 'negative', 'AMZN': 'negative'}}
+'''
+
 from transformers import pipeline
 import yfinance as yf
 from langchain_core.runnables import RunnableLambda
