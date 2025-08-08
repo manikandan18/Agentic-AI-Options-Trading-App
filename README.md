@@ -45,5 +45,6 @@ To run the application from the terminal:-
 <pre> <code>
 git clone https://github.com/manikandan18/Agentic-AI-Options-Trading-App
 cd Agentic-AI-Options-Trading-App
+pip install streamlit langgraph openai yfinance pandas transformers scikit-learn torch 
 streamlit run ai_trading_webapp.py
 </code> </pre> 
