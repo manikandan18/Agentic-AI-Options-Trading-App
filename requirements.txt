@@ -1,0 +1,10 @@
+altair
+pandas
+streamlit
+langgraph
+openai
+yfinance==1.0
+transformers
+scikit-learn
+torch
+matplotlib
